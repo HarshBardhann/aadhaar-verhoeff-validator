@@ -1,5 +1,7 @@
 # Aadhaar-formatted Verhoeff Checksum Validator
 
+![CI](https://github.com/HarshBardhann/aadhaar-verhoeff-validator/actions/workflows/ci.yml/badge.svg)
+
 > **This project validates a checksum, not the authenticity of an Aadhaar number.**
 >
 > **Important limitation:** This tool validates the format and Verhoeff checksum of an Aadhaar-formatted number. It does not confirm that the number was issued by UIDAI, exists in official records, is active, or belongs to any individual. A checksum-valid number may be entirely fabricated. Do not use this tool as a substitute for official Aadhaar verification or identity authentication.
@@ -25,7 +27,7 @@ Only the first two are things this project can actually tell you. It cannot conf
 - Strict Aadhaar-format validation: exactly 12 ASCII digits with a first digit from 2 to 9.
 - Generic check-digit generation from any 11 ASCII digits.
 - pytest suite covering malformed input, Unicode numerals, leading 0/1 rejection, substitutions, transpositions, and leading zeros.
-- A Node.js port that uses the same synthetic test vector.
+- A Node.js port with a matching `node:test` suite using the same synthetic vectors.
 - CLI that reads input interactively by default, so nothing has to land in shell history.
 - Docs for the algorithm, privacy and security, integration, and API responses.
 
@@ -39,6 +41,16 @@ python -m pytest
 ```
 
 There are no runtime dependencies. pytest is only needed for the tests.
+
+## Tests
+
+```sh
+python -m pytest -q
+node --test integrations/javascript/verhoeff.test.js
+node integrations/javascript/example.js
+```
+
+The Python suite lives in `tests/`. The Node.js suite uses the built-in `node:test` runner, so there is no npm install step. `example.js` uses `node:assert`, so a failed check exits non-zero instead of silently continuing. All three commands run on every push and pull request through GitHub Actions.
 
 ## Quick start
 
@@ -88,8 +100,9 @@ See [integrations/javascript/README.md](integrations/javascript/README.md). Both
 src/aadhaar_validator/     Python package
 examples/                  CLI and a short Python example
 tests/                     pytest suite
-integrations/              Node.js implementation
+integrations/              Node.js implementation and node:test suite
 docs/                      Algorithm, integration, FAQ, security notes
+.github/workflows/         CI (Python and Node.js tests)
 ```
 
 ## Responsible use and privacy
