@@ -4,7 +4,7 @@
 >
 > **Important limitation:** This tool validates the format and Verhoeff checksum of an Aadhaar-formatted number. It does not confirm that the number was issued by UIDAI, exists in official records, is active, or belongs to any individual. A checksum-valid number may be entirely fabricated. Do not use this tool as a substitute for official Aadhaar verification or identity authentication.
 
-[GitHub Repository URL]
+https://github.com/HarshBardhann/aadhaar-verhoeff-validator
 
 This is a small reference project for checking an Aadhaar-formatted string locally. It looks at two things: whether the input is exactly 12 ASCII digits, and whether those digits end in a correct Verhoeff check digit. There is a Python package, a matching Node.js module, a CLI, a test suite, and some notes on the algorithm and on what a checksum can and cannot tell you. Nothing here contacts UIDAI or any other service.
 
