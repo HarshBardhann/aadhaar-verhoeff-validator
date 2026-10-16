@@ -46,11 +46,13 @@ There are no runtime dependencies. pytest is only needed for the tests.
 
 ```sh
 python -m pytest -q
+PYTHONPATH=src python examples/usage.py
+PYTHONPATH=src python examples/cli.py --demo
 node --test integrations/javascript/verhoeff.test.js
 node integrations/javascript/example.js
 ```
 
-The Python suite lives in `tests/`. The Node.js suite uses the built-in `node:test` runner, so there is no npm install step. `example.js` uses `node:assert`, so a failed check exits non-zero instead of silently continuing. All three commands run on every push and pull request through GitHub Actions.
+The Python suite also checks the Python examples, and CI runs both examples directly. The Node.js suite uses the built-in `node:test` runner, so there is no npm install step. `example.js` uses `node:assert`, so a failed check exits non-zero instead of silently continuing. All five commands run on every push and pull request through GitHub Actions.
 
 ## Quick start
 

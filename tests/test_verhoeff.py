@@ -1,3 +1,8 @@
+import os
+import subprocess
+import sys
+from pathlib import Path
+
 import pytest
 
 from aadhaar_validator import (
@@ -14,6 +19,20 @@ SYNTHETIC_NUMBER = "234567890124"  # Generated locally; never an issuance claim.
 # Generic, checksum-valid strings that are NOT Aadhaar-format (leading 0 or 1).
 GENERIC_PREFIX = "12345678901"
 GENERIC_NUMBER = "123456789010"
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _run_example(*arguments: str) -> subprocess.CompletedProcess[str]:
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = str(ROOT / "src")
+    return subprocess.run(
+        [sys.executable, *arguments],
+        cwd=ROOT,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
 
 
 def test_known_verhoeff_reference_vector() -> None:
@@ -117,3 +136,35 @@ def test_checksum_validity_is_not_issuance_evidence() -> None:
     assert validate_aadhaar_checksum(SYNTHETIC_NUMBER)
     assert "issued" not in validate_aadhaar_checksum.__name__
     assert "issued" not in generate_check_digit.__name__
+
+
+def test_usage_example_runs_with_synthetic_data_only() -> None:
+    result = _run_example("examples/usage.py")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines() == [
+        "Format valid",
+        "Checksum valid",
+        "UIDAI issuance and identity were not verified.",
+    ]
+
+
+def test_cli_demo_is_non_interactive_and_uses_standard_result_labels() -> None:
+    result = _run_example("examples/cli.py", "--demo")
+    assert result.returncode == 0, result.stderr
+    assert "Format valid" in result.stdout
+    assert "Format invalid" in result.stdout
+    assert "Checksum valid" in result.stdout
+    assert "Checksum invalid" in result.stdout
+    assert "No UIDAI issuance or identity verification was performed." in result.stdout
+
+
+def test_cli_rejects_bad_generation_input_with_a_nonzero_status() -> None:
+    result = _run_example("examples/cli.py", "--generate", "not-a-prefix")
+    assert result.returncode == 2
+    assert "Format invalid: first_11 must contain exactly 11 ASCII digits" in result.stderr
+
+
+def test_cli_handles_closed_standard_input_without_a_traceback() -> None:
+    result = _run_example("examples/cli.py")
+    assert result.returncode == 2
+    assert "No input provided; nothing was validated." in result.stderr

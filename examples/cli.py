@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 
 from aadhaar_validator import generate_check_digit, validate_aadhaar_checksum
 
@@ -37,7 +38,7 @@ def demo() -> None:
         report(value)
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(description=LIMITATION)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--validate", metavar="VALUE", help="Validate locally (may remain in shell history).")
@@ -49,13 +50,21 @@ def main() -> None:
         try:
             print(f"Check digit: {generate_check_digit(args.generate)}")
         except ValueError as error:
-            print(f"Format invalid: {error}")
+            print(f"Format invalid: {error}", file=sys.stderr)
+            return 2
     elif args.demo:
         demo()
     else:
-        value = args.validate if args.validate is not None else input("12-digit Aadhaar-format test string, first digit 2-9 (not stored): ")
+        try:
+            value = args.validate if args.validate is not None else input(
+                "12-digit Aadhaar-format test string, first digit 2-9 (not stored): "
+            )
+        except EOFError:
+            print("No input provided; nothing was validated.", file=sys.stderr)
+            return 2
         report(value)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
