@@ -28,6 +28,10 @@ _P: Final[tuple[tuple[int, ...], ...]] = (
 )
 _INV: Final[tuple[int, ...]] = (0, 4, 3, 2, 1, 5, 6, 7, 8, 9)
 
+# Aadhaar-format rules, kept separate from the generic Verhoeff primitive.
+_AADHAAR_LENGTH: Final[int] = 12
+_AADHAAR_FIRST_DIGITS: Final[frozenset[str]] = frozenset("23456789")
+
 
 def _is_ascii_digits(value: object) -> bool:
     return isinstance(value, str) and value.isascii() and value.isdigit()
@@ -49,20 +53,32 @@ def verhoeff_checksum_valid(number: str) -> bool:
 
 
 def validate_aadhaar_checksum(number: str) -> bool:
-    """Return True if *number* is 12 ASCII digits with a valid checksum.
+    """Return True if *number* matches the Aadhaar format with a valid checksum.
+
+    "Aadhaar format" here means exactly 12 ASCII digits whose first digit is 2
+    through 9; UIDAI numbers never start with 0 or 1. On top of that the final
+    digit must be the correct Verhoeff check digit.
 
     True means only "format valid" and "checksum valid". It does not establish
     UIDAI issuance, that the record exists, that the number is active, who owns
     it, or anything about identity.
     """
-    return isinstance(number, str) and len(number) == 12 and _is_ascii_digits(number) and verhoeff_checksum_valid(number)
+    return (
+        isinstance(number, str)
+        and len(number) == _AADHAAR_LENGTH
+        and number[0] in _AADHAAR_FIRST_DIGITS
+        and _is_ascii_digits(number)
+        and verhoeff_checksum_valid(number)
+    )
 
 
 def generate_check_digit(first_11: str) -> str:
     """Return the Verhoeff check digit for exactly 11 ASCII digits.
 
-    The result makes ``first_11 + digit`` checksum-valid. That is all it is: a
-    checksum, not an issued identifier. Raises ValueError on bad input.
+    This is generic: the 11 digits may start with any digit, including 0 or 1.
+    The result makes ``first_11 + digit`` checksum-valid, but it does not
+    establish Aadhaar issuance, and an 11-digit prefix that starts with 0 or 1
+    cannot produce an Aadhaar-format result. Raises ValueError on bad input.
     """
     if not isinstance(first_11, str) or len(first_11) != 11 or not _is_ascii_digits(first_11):
         raise ValueError("first_11 must contain exactly 11 ASCII digits")

@@ -12,7 +12,9 @@ Take the widely used generic example `2363` (not Aadhaar data). Reading right to
 
 ## Generating the check digit
 
-When you have the first eleven digits and need the twelfth, the loop changes. Read right to left and use `P[(i + 1) mod 8]`, then return `INV[c]`. That one-position shift matters; generation is not the validation loop reused as-is. For the synthetic prefix used in this repo, `12345678901`, the result is `0`, so the full string is `123456789010`. For any fixed eleven digits, exactly one of the ten possible final digits works, which is why roughly 10% of uniformly random 12-digit strings pass if you ignore other constraints.
+When you have the first eleven digits and need the twelfth, the loop changes. Read right to left and use `P[(i + 1) mod 8]`, then return `INV[c]`. That one-position shift matters; generation is not the validation loop reused as-is. For example, the generic prefix `12345678901` yields `0`, giving the generic string `123456789010`. For any fixed eleven digits, exactly one of the ten possible final digits works, which is why roughly 10% of uniformly random 12-digit strings pass if you ignore other constraints.
+
+Generation is generic and says nothing about Aadhaar format. The Aadhaar-format check in this repo adds one rule on top of the checksum: the first digit must be 2 through 9, because UIDAI numbers never start with 0 or 1. So `123456789010` is checksum-valid but not an Aadhaar-format number, while `23456789012` plus the generated `4` gives the synthetic Aadhaar-format example `234567890124`.
 
 The [Verhoeff page on Wikipedia](https://en.wikipedia.org/wiki/Verhoeff_algorithm) lists the tables, the `236 -> 3` example, and the error-detection properties. The original work is J. Verhoeff, *Error Detecting Decimal Codes* (1969), DOI [10.1002/zamm.19710510323](https://doi.org/10.1002/zamm.19710510323). Accessed 2026-10-16.
 

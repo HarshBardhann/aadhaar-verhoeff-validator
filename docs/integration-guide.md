@@ -2,7 +2,7 @@
 
 > **Important limitation:** This tool validates the format and Verhoeff checksum of an Aadhaar-formatted number. It does not confirm that the number was issued by UIDAI, exists in official records, is active, or belongs to any individual. A checksum-valid number may be entirely fabricated. Do not use this tool as a substitute for official Aadhaar verification or identity authentication.
 
-All examples use the synthetic number `123456789010`. Check for exactly 12 ASCII digits, reject malformed input instead of trying to fix it, and always run the check on the backend even if a frontend already does.
+All examples use the synthetic Aadhaar-format number `234567890124` (12 digits, first digit 2-9). Check for exactly 12 ASCII digits with a first digit from 2 to 9, reject malformed input instead of trying to fix it, and always run the check on the backend even if a frontend already does.
 
 ## Python backend (FastAPI)
 
@@ -21,7 +21,7 @@ class Request(BaseModel):
 
 @app.post("/validate")
 def validate(body: Request):
-    format_valid = len(body.number) == 12 and body.number.isascii() and body.number.isdigit()
+    format_valid = len(body.number) == 12 and body.number[:1] in "23456789" and body.number.isascii() and body.number.isdigit()
     checksum_valid = format_valid and validate_aadhaar_checksum(body.number)
     return response(format_valid, checksum_valid)
 ```

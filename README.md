@@ -6,15 +6,15 @@
 
 https://github.com/HarshBardhann/aadhaar-verhoeff-validator
 
-This is a small reference project for checking an Aadhaar-formatted string locally. It looks at two things: whether the input is exactly 12 ASCII digits, and whether those digits end in a correct Verhoeff check digit. There is a Python package, a matching Node.js module, a CLI, a test suite, and some notes on the algorithm and on what a checksum can and cannot tell you. Nothing here contacts UIDAI or any other service.
+This is a small reference project for checking an Aadhaar-formatted string locally. It looks at two things: whether the input is exactly 12 ASCII digits with a first digit from 2 to 9, and whether those digits end in a correct Verhoeff check digit. There is a Python package, a matching Node.js module, a CLI, a test suite, and some notes on the algorithm and on what a checksum can and cannot tell you. Nothing here contacts UIDAI or any other service.
 
 ## What it checks
 
 | Result | Meaning |
 | --- | --- |
-| **Format valid** | Exactly 12 ASCII digits |
+| **Format valid** | Exactly 12 ASCII digits, first digit 2-9 |
 | **Checksum valid** | The digits satisfy Verhoeff |
-| **Format invalid** | Not exactly 12 ASCII digits |
+| **Format invalid** | Not 12 ASCII digits, or starts with 0 or 1 |
 | **Checksum invalid** | Format-valid input fails Verhoeff |
 
 Only the first two are things this project can actually tell you. It cannot confirm that UIDAI issued the number, and it cannot confirm who the number belongs to. Making up a checksum-valid number is trivial, and failing the checksum says nothing on its own about whether a number was ever issued.
@@ -22,8 +22,9 @@ Only the first two are things this project can actually tell you. It cannot conf
 ## Features
 
 - Verhoeff validation for any ASCII digit string, leading zeros included.
-- Strict 12-digit Aadhaar-format validation and 11-digit check-digit generation.
-- pytest suite covering malformed input, Unicode numerals, substitutions, transpositions, and leading zeros.
+- Strict Aadhaar-format validation: exactly 12 ASCII digits with a first digit from 2 to 9.
+- Generic check-digit generation from any 11 ASCII digits.
+- pytest suite covering malformed input, Unicode numerals, leading 0/1 rejection, substitutions, transpositions, and leading zeros.
 - A Node.js port that uses the same synthetic test vector.
 - CLI that reads input interactively by default, so nothing has to land in shell history.
 - Docs for the algorithm, privacy and security, integration, and API responses.
@@ -44,19 +45,21 @@ There are no runtime dependencies. pytest is only needed for the tests.
 ```python
 from aadhaar_validator import generate_check_digit, validate_aadhaar_checksum
 
-prefix = "12345678901"              # synthetic test input
+prefix = "23456789012"              # synthetic, first digit 2-9
 synthetic = prefix + generate_check_digit(prefix)
-assert synthetic == "123456789010"
-assert validate_aadhaar_checksum(synthetic)  # checksum ok, identity not checked
+assert synthetic == "234567890124"
+assert validate_aadhaar_checksum(synthetic)  # format and checksum ok, identity not checked
 ```
 
-`verhoeff_checksum_valid(number)` works on any non-empty ASCII digit string. `validate_aadhaar_checksum(number)` requires exactly 12 digits. `generate_check_digit(first_11)` takes 11 digits and raises `ValueError` otherwise. A generated digit is just arithmetic, not an issued identifier.
+`verhoeff_checksum_valid(number)` is generic: it works on any non-empty ASCII digit string, leading zeros included. `validate_aadhaar_checksum(number)` adds the Aadhaar format rule on top, requiring exactly 12 ASCII digits whose first digit is 2-9 (UIDAI numbers never start with 0 or 1), plus a valid Verhoeff checksum. `generate_check_digit(first_11)` is also generic: it takes any 11 ASCII digits and raises `ValueError` otherwise, while a prefix starting with 0 or 1 cannot produce an Aadhaar-format number. A generated digit is arithmetic, not an issued identifier.
+
+A checksum-valid string is not automatically an Aadhaar-format number. For example, `123456789010` passes Verhoeff generically but starts with 1, so it is **not** format valid.
 
 ## CLI
 
 ```sh
 PYTHONPATH=src python examples/cli.py
-PYTHONPATH=src python examples/cli.py --generate 12345678901
+PYTHONPATH=src python examples/cli.py --generate 23456789012
 PYTHONPATH=src python examples/cli.py --demo
 ```
 
@@ -70,7 +73,7 @@ The JavaScript port lives in `integrations/javascript`:
 node integrations/javascript/example.js
 ```
 
-See [integrations/javascript/README.md](integrations/javascript/README.md). Both ports produce `0` for the prefix `12345678901`, giving `123456789010`. Handle input as a string; casting it to a number drops leading zeros.
+See [integrations/javascript/README.md](integrations/javascript/README.md). Both ports produce `4` for the prefix `23456789012`, giving `234567890124`. Handle input as a string; casting it to a number drops leading zeros.
 
 ## Documentation
 

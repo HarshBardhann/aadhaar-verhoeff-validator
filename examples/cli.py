@@ -11,14 +11,19 @@ LIMITATION = ("Important limitation: this tool validates format and Verhoeff che
 
 
 def report(value: str) -> None:
-    format_valid = len(value) == 12 and value.isascii() and value.isdigit()
+    format_valid = (
+        len(value) == 12
+        and value[:1] in "23456789"
+        and value.isascii()
+        and value.isdigit()
+    )
     print(f"Format {'valid' if format_valid else 'invalid'}")
     print(f"Checksum {'valid' if format_valid and validate_aadhaar_checksum(value) else 'invalid'}")
     print("No UIDAI issuance or identity verification was performed.")
 
 
 def demo() -> None:
-    prefix = "12345678901"
+    prefix = "23456789012"
     valid = prefix + generate_check_digit(prefix)
     substitution = valid[:4] + ("0" if valid[4] != "0" else "1") + valid[5:]
     swapped = valid[:2] + valid[3] + valid[2] + valid[4:]
@@ -48,7 +53,7 @@ def main() -> None:
     elif args.demo:
         demo()
     else:
-        value = args.validate if args.validate is not None else input("12-digit test string (not stored): ")
+        value = args.validate if args.validate is not None else input("12-digit Aadhaar-format test string, first digit 2-9 (not stored): ")
         report(value)
 
 

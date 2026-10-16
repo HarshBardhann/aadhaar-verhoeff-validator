@@ -6,7 +6,7 @@
 
 | Concept | Can this project establish it? |
 | --- | --- |
-| Format validity: exactly 12 ASCII digits | Yes |
+| Format validity: exactly 12 ASCII digits, first digit 2-9 | Yes |
 | Checksum validity: Verhoeff result is zero | Yes |
 | Official issuance verification | No |
 | Identity authentication | No |

@@ -8,6 +8,11 @@ const INV = [0,4,3,2,1,5,6,7,8,9];
 
 const asciiDigits = (value) => typeof value === "string" && /^[0-9]+$/.test(value);
 
+// Aadhaar-format rules, kept separate from the generic Verhoeff primitive.
+const AADHAAR_LENGTH = 12;
+const AADHAAR_FIRST_DIGITS = "23456789"; // UIDAI numbers never start with 0 or 1.
+
+// Generic: any non-empty ASCII digit string, leading zeros included.
 function verhoeffChecksumValid(number) {
   if (!asciiDigits(number)) return false;
   let check = 0;
@@ -18,10 +23,19 @@ function verhoeffChecksumValid(number) {
   return check === 0;
 }
 
+// Aadhaar format: exactly 12 ASCII digits, first digit 2-9, valid checksum.
 function validateAadhaarChecksum(number) {
-  return typeof number === "string" && number.length === 12 && asciiDigits(number) && verhoeffChecksumValid(number);
+  return (
+    typeof number === "string" &&
+    number.length === AADHAAR_LENGTH &&
+    AADHAAR_FIRST_DIGITS.includes(number[0]) &&
+    asciiDigits(number) &&
+    verhoeffChecksumValid(number)
+  );
 }
 
+// Generic: exactly 11 ASCII digits, any leading digit. The result is a
+// checksum, not an issued identifier.
 function generateCheckDigit(first11) {
   if (typeof first11 !== "string" || first11.length !== 11 || !asciiDigits(first11)) {
     throw new Error("first11 must contain exactly 11 ASCII digits");
